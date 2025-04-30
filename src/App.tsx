@@ -50,6 +50,9 @@ const AnalysisPanel = styled.div`
   border: 1px solid #FF4136;
   border-radius: 4px;
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 `;
 
 const AnalysisHeader = styled.h2`
@@ -208,6 +211,67 @@ const DangerButton = styled(Button)`
   }
 `;
 
+const SearchPanel = styled.div`
+  background-color: #2a2a2a;
+  border-top: 1px solid #FFD700;
+  padding: 1rem;
+  margin-top: auto;
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #1a1a1a;
+  border: 1px solid #FFD700;
+  border-radius: 4px;
+  color: #ffffff;
+  margin-bottom: 1rem;
+
+  &:focus {
+    outline: none;
+    border-color: #FF4136;
+  }
+`;
+
+const SearchResults = styled.div`
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const SearchResult = styled.div`
+  padding: 0.5rem;
+  background-color: #1a1a1a;
+  border: 1px solid #FFD700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #FF4136;
+    border-color: #FF4136;
+  }
+`;
+
+const ResultNetwork = styled.span`
+  color: #FFD700;
+  font-weight: bold;
+`;
+
+const ResultContext = styled.div`
+  color: #cccccc;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+`;
+
+const SearchTitle = styled.h3`
+  color: #FFD700;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+`;
+
 function App() {
   const [code, setCode] = useState('// Enter your PLC program here...');
   const [analysis, setAnalysis] = useState<string[]>([]);
@@ -216,6 +280,14 @@ function App() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'code' | 'ladder'>('code');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{
+    network: number;
+    line: number;
+    context: string;
+    component: string;
+  }>>([]);
+  const editorRef = useRef<any>(null);
 
   const handleCodeChange = (value: string | undefined) => {
     setCode(value || '');
@@ -609,6 +681,71 @@ function App() {
     }
   };
 
+  const handleEditorDidMount = (editor: any) => {
+    editorRef.current = editor;
+  };
+
+  const searchPLC = (term: string) => {
+    if (!term.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const lines = code.split('\n');
+    const results: Array<{
+      network: number;
+      line: number;
+      context: string;
+      component: string;
+    }> = [];
+
+    let currentNetwork = 0;
+
+    lines.forEach((line, index) => {
+      if (line.startsWith('Network')) {
+        currentNetwork = parseInt(line.split(' ')[1]);
+        return;
+      }
+
+      const upperLine = line.toUpperCase();
+      const upperTerm = term.toUpperCase();
+
+      if (upperLine.includes(upperTerm)) {
+        // Extract the component name based on PLC instructions
+        const instructions = ['LD', 'AND', 'OR', 'ST', 'TON', 'CTU', 'SET', 'RESET'];
+        let component = '';
+        
+        for (const instruction of instructions) {
+          if (upperLine.includes(instruction)) {
+            const parts = line.split(' ');
+            const componentIndex = parts.findIndex(p => p.toUpperCase().includes(upperTerm));
+            if (componentIndex !== -1) {
+              component = parts[componentIndex];
+              break;
+            }
+          }
+        }
+
+        results.push({
+          network: currentNetwork,
+          line: index + 1,
+          context: line.trim(),
+          component: component || term
+        });
+      }
+    });
+
+    setSearchResults(results);
+  };
+
+  const navigateToResult = (line: number) => {
+    if (editorRef.current) {
+      editorRef.current.revealLineInCenter(line);
+      editorRef.current.setPosition({ lineNumber: line, column: 1 });
+      editorRef.current.focus();
+    }
+  };
+
   return (
     <AppContainer>
       <Header>
@@ -681,11 +818,13 @@ function App() {
               theme="vs-dark"
               value={code}
               onChange={handleCodeChange}
+              onMount={handleEditorDidMount}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
                 lineNumbers: 'on',
                 wordWrap: 'on',
+                renderLineHighlight: 'all'
               }}
             />
           ) : (
@@ -697,6 +836,29 @@ function App() {
           {analysis.map((result, index) => (
             <p key={index}>{result}</p>
           ))}
+          <SearchPanel>
+            <SearchTitle>Cross-Reference Search</SearchTitle>
+            <SearchInput
+              type="text"
+              placeholder="Search for components (e.g., SENSOR_1, MOTOR)"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                searchPLC(e.target.value);
+              }}
+            />
+            <SearchResults>
+              {searchResults.map((result, index) => (
+                <SearchResult
+                  key={index}
+                  onClick={() => navigateToResult(result.line)}
+                >
+                  <ResultNetwork>Network {result.network}</ResultNetwork>
+                  <ResultContext>{result.context}</ResultContext>
+                </SearchResult>
+              ))}
+            </SearchResults>
+          </SearchPanel>
         </AnalysisPanel>
       </MainContent>
       {pdfUrl && (
