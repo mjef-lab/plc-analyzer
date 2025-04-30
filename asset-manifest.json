@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/plc-analyzer/static/css/main.e6c13ad2.css",
-    "main.js": "/plc-analyzer/static/js/main.4eb87e4d.js",
+    "main.js": "/plc-analyzer/static/js/main.11ea6d1c.js",
     "static/js/453.7b5333e7.chunk.js": "/plc-analyzer/static/js/453.7b5333e7.chunk.js",
     "index.html": "/plc-analyzer/index.html",
     "main.e6c13ad2.css.map": "/plc-analyzer/static/css/main.e6c13ad2.css.map",
-    "main.4eb87e4d.js.map": "/plc-analyzer/static/js/main.4eb87e4d.js.map",
+    "main.11ea6d1c.js.map": "/plc-analyzer/static/js/main.11ea6d1c.js.map",
     "453.7b5333e7.chunk.js.map": "/plc-analyzer/static/js/453.7b5333e7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.4eb87e4d.js"
+    "static/js/main.11ea6d1c.js"
   ]
 }
