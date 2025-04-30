@@ -1,0 +1,34 @@
+// Conveyor Belt Control Program
+// Tags/Variables
+START_BTN    BOOL    %I0.0    // Start pushbutton
+STOP_BTN     BOOL    %I0.1    // Stop pushbutton (NC)
+E_STOP       BOOL    %I0.2    // Emergency stop (NC)
+SENSOR_1     BOOL    %I0.3    // Entry sensor
+SENSOR_2     BOOL    %I0.4    // Exit sensor
+MOTOR        BOOL    %Q0.0    // Conveyor motor
+FAULT        BOOL    %Q0.1    // Fault indicator light
+RUN_STATUS   BOOL    %M0.0    // Internal run status
+
+// Main Program
+Network 1: Start/Stop Logic
+LD      STOP_BTN    // Load stop button state (NC)
+AND     E_STOP      // AND with emergency stop (NC)
+AND     START_BTN   // AND with start button
+OR      RUN_STATUS  // OR with current run status
+AND     STOP_BTN    // AND with stop button again
+AND     E_STOP      // AND with emergency stop again
+ST      RUN_STATUS  // Store result to run status
+
+Network 2: Motor Control
+LD      RUN_STATUS  // Load run status
+ST      MOTOR       // Control motor
+
+Network 3: Fault Detection
+LD      SENSOR_1    // Load entry sensor
+TON     T1, 10s    // Start timer if entry sensor active
+LD      T1.Q       // Load timer done bit
+AND     SENSOR_1    // Check if entry sensor still active
+ANDN    SENSOR_2    // AND NOT with exit sensor
+ST      FAULT       // Set fault if item stuck on conveyor
+
+// End of Program 
