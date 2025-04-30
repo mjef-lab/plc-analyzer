@@ -199,6 +199,15 @@ const ToggleButton = styled.button<{ active: boolean }>`
   }
 `;
 
+const DangerButton = styled(Button)`
+  background-color: #FF4136;
+  color: #ffffff;
+
+  &:hover {
+    background-color: #dc352c;
+  }
+`;
+
 function App() {
   const [code, setCode] = useState('// Enter your PLC program here...');
   const [analysis, setAnalysis] = useState<string[]>([]);
@@ -583,6 +592,23 @@ function App() {
     }
   };
 
+  const clearEditor = () => {
+    setCode('// Enter your PLC program here...');
+    setAnalysis([]);
+    setFileName('');
+    setPdfUrl(null);
+  };
+
+  const resetToDefault = async () => {
+    try {
+      await downloadSampleProgram();
+      setViewMode('code');
+      setPdfUrl(null);
+    } catch (error) {
+      console.error('Error resetting to default:', error);
+    }
+  };
+
   return (
     <AppContainer>
       <Header>
@@ -591,6 +617,8 @@ function App() {
           <Button onClick={analyzePLC}>Analyze Program</Button>
           <Button onClick={generatePDF}>View as PDF</Button>
           <Button onClick={downloadPDF}>Download PDF</Button>
+          <DangerButton onClick={clearEditor}>Clear</DangerButton>
+          <Button onClick={resetToDefault}>Reset to Sample</Button>
         </ButtonGroup>
       </Header>
       <MainContent>
