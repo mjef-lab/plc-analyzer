@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/plc-analyzer/static/css/main.e6c13ad2.css",
-    "main.js": "/plc-analyzer/static/js/main.48065ba5.js",
+    "main.js": "/plc-analyzer/static/js/main.9bda3e41.js",
     "static/js/239.ae84d8e4.chunk.js": "/plc-analyzer/static/js/239.ae84d8e4.chunk.js",
     "static/js/213.23e86392.chunk.js": "/plc-analyzer/static/js/213.23e86392.chunk.js",
     "static/js/732.1aef52a1.chunk.js": "/plc-analyzer/static/js/732.1aef52a1.chunk.js",
     "static/js/453.7b5333e7.chunk.js": "/plc-analyzer/static/js/453.7b5333e7.chunk.js",
     "index.html": "/plc-analyzer/index.html",
     "main.e6c13ad2.css.map": "/plc-analyzer/static/css/main.e6c13ad2.css.map",
-    "main.48065ba5.js.map": "/plc-analyzer/static/js/main.48065ba5.js.map",
+    "main.9bda3e41.js.map": "/plc-analyzer/static/js/main.9bda3e41.js.map",
     "239.ae84d8e4.chunk.js.map": "/plc-analyzer/static/js/239.ae84d8e4.chunk.js.map",
     "213.23e86392.chunk.js.map": "/plc-analyzer/static/js/213.23e86392.chunk.js.map",
     "732.1aef52a1.chunk.js.map": "/plc-analyzer/static/js/732.1aef52a1.chunk.js.map",
@@ -16,6 +16,6 @@
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.48065ba5.js"
+    "static/js/main.9bda3e41.js"
   ]
 }
