@@ -442,31 +442,86 @@ function App() {
 
   const analyzePLC = () => {
     const results: string[] = [];
+    const lines = code.split('\n').map(line => line.trim());
     
-    if (code.includes('E_STOP')) {
-      results.push('✓ Emergency stop implemented');
+    // Count networks
+    const networks = lines.filter(line => line.startsWith('Network')).length;
+    results.push(`ℹ Found ${networks} networks`);
+
+    // Analyze program structure
+    const hasValidStructure = networks > 0 && lines.some(line => 
+      line.startsWith('LD') || line.startsWith('AND') || line.startsWith('OR'));
+    if (hasValidStructure) {
+      results.push('✓ Valid PLC program structure detected');
     } else {
-      results.push('⚠ No emergency stop found');
+      results.push('⚠ Program structure may not be valid');
     }
 
-    if (code.includes('SENSOR')) {
-      results.push('✓ Sensor inputs detected');
+    // Safety checks
+    const safetyRelated = {
+      emergencyStop: lines.some(line => 
+        line.includes('E_STOP') || line.includes('EMERGENCY') || line.includes('EMG')),
+      faultDetection: lines.some(line => 
+        line.includes('FAULT') || line.includes('ERROR') || line.includes('FLT')),
+      safetyInterlocks: lines.some(line => 
+        line.includes('INTERLOCK') || line.includes('SAFETY') || line.includes('GUARD'))
+    };
+
+    if (safetyRelated.emergencyStop) {
+      results.push('✓ Emergency stop circuit implemented');
+    } else {
+      results.push('⚠ No emergency stop circuit found');
     }
 
-    if (code.includes('FAULT')) {
+    if (safetyRelated.faultDetection) {
       results.push('✓ Fault detection implemented');
     }
 
-    if (code.includes('TON') || code.includes('TIMER')) {
-      results.push('✓ Timer functionality present');
+    if (safetyRelated.safetyInterlocks) {
+      results.push('✓ Safety interlocks detected');
     }
 
-    if (code.includes('AND') && code.includes('OR')) {
-      results.push('✓ Logic operations implemented');
+    // Input/Output analysis
+    const ioAnalysis = {
+      inputs: lines.filter(line => line.includes('INPUT') || line.includes('SENSOR')).length,
+      outputs: lines.filter(line => line.includes('OUTPUT') || line.includes('MOTOR') || line.includes('VALVE')).length
+    };
+
+    if (ioAnalysis.inputs > 0) {
+      results.push(`✓ ${ioAnalysis.inputs} input(s) detected`);
+    }
+    if (ioAnalysis.outputs > 0) {
+      results.push(`✓ ${ioAnalysis.outputs} output(s) detected`);
     }
 
-    const networks = code.split('Network').length - 1;
-    results.push(`ℹ Found ${networks} networks`);
+    // Timer and Counter analysis
+    const timers = lines.filter(line => line.includes('TON') || line.includes('TIMER')).length;
+    const counters = lines.filter(line => line.includes('CTU') || line.includes('CTD') || line.includes('COUNTER')).length;
+
+    if (timers > 0) {
+      results.push(`✓ ${timers} timer(s) implemented`);
+    }
+    if (counters > 0) {
+      results.push(`✓ ${counters} counter(s) implemented`);
+    }
+
+    // Logic operations analysis
+    const logicOps = {
+      and: lines.filter(line => line.startsWith('AND')).length,
+      or: lines.filter(line => line.startsWith('OR')).length,
+      not: lines.filter(line => line.includes('NOT') || line.includes('LDN') || line.includes('ANDN')).length
+    };
+
+    results.push(`ℹ Logic operations: ${logicOps.and} AND, ${logicOps.or} OR, ${logicOps.not} NOT`);
+
+    // Special instructions
+    const specialInstructions = lines.filter(line => 
+      line.includes('SET') || line.includes('RESET') || 
+      line.includes('JUMP') || line.includes('CALL')).length;
+
+    if (specialInstructions > 0) {
+      results.push(`✓ ${specialInstructions} special instruction(s) found`);
+    }
 
     setAnalysis(results);
   };
