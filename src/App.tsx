@@ -791,16 +791,24 @@ function App() {
                 id="file-upload"
               />
               {fileName && <FileName>Current file: {fileName}</FileName>}
-              <DownloadLink 
-                href="/plc-analyzer/samples/conveyor.plc" 
-                download="conveyor.plc"
-                onClick={(e) => {
-                  e.preventDefault();
-                  downloadSampleProgram();
-                }}
-              >
-                Download Sample Program
-              </DownloadLink>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <DownloadLink 
+                  href="/plc-analyzer/samples/conveyor.plc" 
+                  download="conveyor.plc"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    downloadSampleProgram();
+                  }}
+                >
+                  Download Basic Sample
+                </DownloadLink>
+                <DownloadLink 
+                  href="/plc-analyzer/downloads/conveyor_control.plc" 
+                  download="conveyor_control.plc"
+                >
+                  Download Conveyor Control Program
+                </DownloadLink>
+              </div>
             </ButtonContainer>
           </FileUploadContainer>
           <MitsubishiSymbolHandler onSymbolsUpdate={handleSymbolsUpdate} />
