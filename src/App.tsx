@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import Editor from '@monaco-editor/react';
 import { jsPDF } from 'jspdf';
 import LadderDiagram from './components/LadderDiagram';
-import MitsubishiSymbolHandler from './components/MitsubishiSymbolHandler';
+import MitsubishiSymbolHandler, { SymbolData } from './components/MitsubishiSymbolHandler';
 
 const AppContainer = styled.div`
   background-color: #1a1a1a;
@@ -289,6 +289,7 @@ function App() {
     component: string;
   }>>([]);
   const editorRef = useRef<any>(null);
+  const [plcSymbols, setPlcSymbols] = useState<SymbolData[]>([]);
 
   const handleCodeChange = (value: string | undefined) => {
     setCode(value || '');
@@ -747,6 +748,10 @@ function App() {
     }
   };
 
+  const handleSymbolsUpdate = (symbols: SymbolData[]) => {
+    setPlcSymbols(symbols);
+  };
+
   return (
     <AppContainer>
       <Header>
@@ -798,7 +803,7 @@ function App() {
               </DownloadLink>
             </ButtonContainer>
           </FileUploadContainer>
-          <MitsubishiSymbolHandler />
+          <MitsubishiSymbolHandler onSymbolsUpdate={handleSymbolsUpdate} />
           <ViewToggle>
             <ToggleButton 
               active={viewMode === 'code'} 
@@ -830,7 +835,7 @@ function App() {
               }}
             />
           ) : (
-            <LadderDiagram code={code} />
+            <LadderDiagram code={code} symbols={plcSymbols} />
           )}
         </EditorContainer>
         <AnalysisPanel>

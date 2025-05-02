@@ -1,0 +1,16 @@
+Symbol Name,Address,Data Type,Comment
+START_PB,X0,Bit,Start Push Button
+STOP_PB,X1,Bit,Stop Push Button
+E_STOP,X2,Bool,Emergency Stop Button
+MOTOR_RUN,Y0,Bit,Motor Run Output
+FAULT_LAMP,Y1,Bit,Fault Indicator Lamp
+SPEED_REF,D100,Word,Motor Speed Reference
+CURRENT_PV,D102,Int16,Motor Current Value
+TEMP_SENSOR,D104,Double,Temperature Sensor Value
+TOTAL_RUNTIME,D106,DWord,Total Runtime Counter
+BATCH_COUNT,C0,Word,Production Batch Counter
+CYCLE_TIME,T0,Word,Process Cycle Timer
+ERROR_CODE,D108,Byte,System Error Code
+POSITION_REG,D110,LWord,Absolute Position Register
+STATUS_FLAGS,M100,Bit,System Status Flags
+ALARM_WORD,D112,Word,Active Alarm Status 

@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-interface SymbolData {
+export interface SymbolData {
   name: string;
   address: string;
   dataType: string;
   comment: string;
   format: 'bit' | 'byte' | 'word' | 'double' | 'quad';
+}
+
+interface MitsubishiSymbolHandlerProps {
+  onSymbolsUpdate: (symbols: SymbolData[]) => void;
 }
 
 const Container = styled.div`
@@ -65,7 +69,7 @@ const FileInput = styled.input`
   display: none;
 `;
 
-const MitsubishiSymbolHandler: React.FC = () => {
+const MitsubishiSymbolHandler: React.FC<MitsubishiSymbolHandlerProps> = ({ onSymbolsUpdate }) => {
   const [symbols, setSymbols] = useState<SymbolData[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -74,7 +78,6 @@ const MitsubishiSymbolHandler: React.FC = () => {
     const parsedSymbols: SymbolData[] = [];
 
     lines.forEach(line => {
-      // Handle different Mitsubishi file formats
       if (line.includes(',')) {  // CSV format
         const [name, address, dataType, comment] = line.split(',');
         if (name && address) {
@@ -101,6 +104,7 @@ const MitsubishiSymbolHandler: React.FC = () => {
     });
 
     setSymbols(parsedSymbols);
+    onSymbolsUpdate(parsedSymbols); // Notify parent component of symbol updates
   };
 
   const determineFormat = (dataType: string): 'bit' | 'byte' | 'word' | 'double' | 'quad' => {

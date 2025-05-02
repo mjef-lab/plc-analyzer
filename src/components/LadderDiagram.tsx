@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { SymbolData } from './MitsubishiSymbolHandler';
 
 interface Contact {
   type: 'NO' | 'NC' | 'Coil' | 'Timer' | 'Counter' | 'Compare' | 'Set' | 'Reset';
@@ -170,117 +171,169 @@ const Value = styled.span`
 
 interface LadderDiagramProps {
   code: string;
+  symbols: SymbolData[];
 }
 
-const parsePLCCode = (code: string): Rung[] => {
-  const rungs: Rung[] = [];
-  let currentRung: Contact[] = [];
-  let rungNumber = 0;
+const SymbolLabel = styled.div`
+  font-size: 0.8rem;
+  color: #FFD700;
+  text-align: center;
+  margin-top: 0.25rem;
+`;
 
-  const lines = code.split('\n');
-  lines.forEach(line => {
-    const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('Network')) {
-      if (currentRung.length > 0) {
-        rungs.push({ contacts: currentRung, number: rungNumber });
+const CommentLabel = styled.div`
+  font-size: 0.7rem;
+  color: #999;
+  text-align: center;
+  margin-top: 0.25rem;
+  font-style: italic;
+`;
+
+const LadderDiagram: React.FC<LadderDiagramProps> = ({ code, symbols }) => {
+  const findSymbol = (name: string): SymbolData | undefined => {
+    return symbols.find(s => s.name === name || s.address === name);
+  };
+
+  const renderSymbolInfo = (name: string) => {
+    const symbol = findSymbol(name);
+    if (!symbol) return name;
+
+    return (
+      <>
+        <div>{symbol.name}</div>
+        <SymbolLabel>{symbol.address}</SymbolLabel>
+        {symbol.comment && <CommentLabel>{symbol.comment}</CommentLabel>}
+      </>
+    );
+  };
+
+  const parsePLCCode = (code: string) => {
+    const rungs: Array<{ contacts: Array<{ type: string; name: string; value?: string }> }> = [];
+    let currentRung: Array<{ type: string; name: string; value?: string }> = [];
+
+    const lines = code.split('\n');
+    lines.forEach(line => {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('Network')) {
+        if (currentRung.length > 0) {
+          rungs.push({ contacts: currentRung });
+        }
+        currentRung = [];
+      } else if (trimmedLine.startsWith('LD')) {
+        const contact = trimmedLine.split(' ')[1];
+        currentRung.push({
+          type: trimmedLine.includes('LDN') ? 'NC' : 'NO',
+          name: contact
+        });
+      } else if (trimmedLine.startsWith('AND')) {
+        const contact = trimmedLine.split(' ')[1];
+        currentRung.push({
+          type: trimmedLine.includes('ANDN') ? 'NC' : 'NO',
+          name: contact
+        });
+      } else if (trimmedLine.startsWith('TON')) {
+        const [_, timer, time] = trimmedLine.split(' ');
+        currentRung.push({
+          type: 'Timer',
+          name: timer,
+          value: time
+        });
+      } else if (trimmedLine.startsWith('ST')) {
+        const coil = trimmedLine.split(' ')[1];
+        currentRung.push({
+          type: 'Coil',
+          name: coil
+        });
       }
-      currentRung = [];
-      rungNumber++;
-    } else if (trimmedLine.startsWith('LD')) {
-      const contact = trimmedLine.split(' ')[1];
-      currentRung.push({
-        type: trimmedLine.includes('LDN') ? 'NC' : 'NO',
-        name: contact,
-        x: currentRung.length,
-        y: 0
-      });
-    } else if (trimmedLine.startsWith('AND')) {
-      const contact = trimmedLine.split(' ')[1];
-      currentRung.push({
-        type: trimmedLine.includes('ANDN') ? 'NC' : 'NO',
-        name: contact,
-        x: currentRung.length,
-        y: 0
-      });
-    } else if (trimmedLine.startsWith('TON')) {
-      const [_, timer, time] = trimmedLine.split(' ');
-      currentRung.push({
-        type: 'Timer',
-        name: timer,
-        value: time,
-        x: currentRung.length,
-        y: 0
-      });
-    } else if (trimmedLine.startsWith('CTU')) {
-      const [_, counter, preset] = trimmedLine.split(' ');
-      currentRung.push({
-        type: 'Counter',
-        name: counter,
-        value: preset,
-        x: currentRung.length,
-        y: 0
-      });
-    } else if (trimmedLine.startsWith('CMP')) {
-      const [_, value1, op, value2] = trimmedLine.split(' ');
-      currentRung.push({
-        type: 'Compare',
-        name: `${value1} ${op} ${value2}`,
-        x: currentRung.length,
-        y: 0
-      });
-    } else if (trimmedLine.startsWith('SET')) {
-      const coil = trimmedLine.split(' ')[1];
-      currentRung.push({
-        type: 'Set',
-        name: coil,
-        x: currentRung.length,
-        y: 0
-      });
-    } else if (trimmedLine.startsWith('RST')) {
-      const coil = trimmedLine.split(' ')[1];
-      currentRung.push({
-        type: 'Reset',
-        name: coil,
-        x: currentRung.length,
-        y: 0
-      });
-    } else if (trimmedLine.startsWith('ST')) {
-      const coil = trimmedLine.split(' ')[1];
-      currentRung.push({
-        type: 'Coil',
-        name: coil,
-        x: currentRung.length,
-        y: 0
-      });
+    });
+
+    if (currentRung.length > 0) {
+      rungs.push({ contacts: currentRung });
     }
-  });
 
-  if (currentRung.length > 0) {
-    rungs.push({ contacts: currentRung, number: rungNumber });
-  }
+    return rungs;
+  };
 
-  return rungs;
-};
-
-const LadderDiagram: React.FC<LadderDiagramProps> = ({ code }) => {
   const rungs = parsePLCCode(code);
 
   return (
-    <DiagramContainer>
-      <RungContainer>
-        {rungs.map((rung, index) => (
-          <Rung key={index}>
-            <RungNumber>{index + 1}</RungNumber>
-            {rung.contacts.map((contact, contactIndex) => (
-              <Contact key={contactIndex} type={contact.type}>
-                {contact.name}
-                {contact.value && <Value>{contact.value}</Value>}
-              </Contact>
-            ))}
-          </Rung>
-        ))}
-      </RungContainer>
-    </DiagramContainer>
+    <div>
+      {rungs.map((rung, rungIndex) => (
+        <div key={rungIndex} style={{ marginBottom: '2rem' }}>
+          <div style={{ borderBottom: '1px solid #FFD700', marginBottom: '0.5rem' }}>
+            Network {rungIndex + 1}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {rung.contacts.map((contact, contactIndex) => {
+              switch (contact.type) {
+                case 'NO':
+                  return (
+                    <div key={contactIndex} style={{ textAlign: 'center' }}>
+                      <div style={{ border: '1px solid #FFD700', padding: '0.5rem', borderRadius: '4px' }}>
+                        {renderSymbolInfo(contact.name)}
+                      </div>
+                    </div>
+                  );
+                case 'NC':
+                  return (
+                    <div key={contactIndex} style={{ textAlign: 'center' }}>
+                      <div style={{ 
+                        border: '1px solid #FFD700', 
+                        padding: '0.5rem', 
+                        borderRadius: '4px',
+                        position: 'relative' 
+                      }}>
+                        <div style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          borderTop: '1px solid #FFD700',
+                          transform: 'rotate(-45deg)',
+                          transformOrigin: 'center'
+                        }} />
+                        {renderSymbolInfo(contact.name)}
+                      </div>
+                    </div>
+                  );
+                case 'Timer':
+                  return (
+                    <div key={contactIndex} style={{ textAlign: 'center' }}>
+                      <div style={{ 
+                        border: '1px solid #FFD700', 
+                        padding: '0.5rem', 
+                        borderRadius: '4px',
+                        minWidth: '100px' 
+                      }}>
+                        <div>TMR</div>
+                        {renderSymbolInfo(contact.name)}
+                        <div style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                          {contact.value}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                case 'Coil':
+                  return (
+                    <div key={contactIndex} style={{ textAlign: 'center' }}>
+                      <div style={{ 
+                        border: '1px solid #FFD700', 
+                        padding: '0.5rem', 
+                        borderRadius: '20px'
+                      }}>
+                        {renderSymbolInfo(contact.name)}
+                      </div>
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 
