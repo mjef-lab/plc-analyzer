@@ -1,0 +1,29 @@
+Network 1 // Safety Circuit
+LD E_STOP
+ANDN FAULT
+AND SAFETY_GUARD
+ST SYSTEM_ENABLE
+
+Network 2 // Sensor Input Processing
+LD SENSOR_1
+AND SENSOR_2
+TON TIMER_1, 5s
+ST OUTPUT_1
+
+Network 3 // Counter Logic
+LD INPUT_1
+CTU COUNTER_1, 10
+ST OUTPUT_2
+
+Network 4 // Motor Control
+LD SYSTEM_ENABLE
+AND START_BTN
+OR MOTOR_RUN
+ANDN STOP_BTN
+ST MOTOR_RUN
+
+Network 5 // Fault Detection
+LD SENSOR_FAULT
+OR MOTOR_FAULT
+ST FAULT
+SET ALARM 

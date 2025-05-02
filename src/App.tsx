@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Editor from '@monaco-editor/react';
 import { jsPDF } from 'jspdf';
 import LadderDiagram from './components/LadderDiagram';
+import MitsubishiSymbolHandler from './components/MitsubishiSymbolHandler';
 
 const AppContainer = styled.div`
   background-color: #1a1a1a;
@@ -797,6 +798,7 @@ function App() {
               </DownloadLink>
             </ButtonContainer>
           </FileUploadContainer>
+          <MitsubishiSymbolHandler />
           <ViewToggle>
             <ToggleButton 
               active={viewMode === 'code'} 
